@@ -42,7 +42,7 @@ class AuthController extends Controller
 
         try {
             $token = $user->createToken('auth-token', ['*:full'])->plainTextToken;
-            $user->load(['roles', 'permissions']);
+            $user->load(['roles.permissions', 'permissions']);
 
             DB::commit();
         } catch (\Throwable $e) {
@@ -91,7 +91,7 @@ class AuthController extends Controller
     public function me(Request $request): JsonResponse
     {
         $user = $request->user();
-        $user->load(['roles', 'permissions']);
+        $user->load(['roles.permissions', 'permissions']);
 
         return response()->json([
             'success' => true,

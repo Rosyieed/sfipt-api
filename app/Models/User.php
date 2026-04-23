@@ -37,6 +37,14 @@ class User extends Authenticatable
         'password',
         'remember_token',
     ];
+    /**
+     * The accessors to append to the model's array form.
+     *
+     * @var list<string>
+     */
+    protected $appends = [
+        'all_permissions',
+    ];
 
     /**
      * Get the attributes that should be cast.
@@ -49,5 +57,20 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+    public function getAllPermissionsAttribute(): array
+    {
+        if (
+            $this->relationLoaded('permissions')
+            && $this->relationLoaded('roles')
+            && $this->roles->every(fn ($role) => $role->relationLoaded('permissions'))
+        ) {
+            $directPermissions = $this->permissions->pluck('name');
+            $rolePermissions = $this->roles->flatMap(fn ($role) => $role->permissions)->pluck('name');
+
+            return $directPermissions->merge($rolePermissions)->unique()->values()->all();
+        }
+
+        return $this->getAllPermissions()->pluck('name')->unique()->values()->all();
     }
 }

@@ -18,7 +18,7 @@ class UserController extends Controller
         $perPage = max(1, min(100, $perPage));
 
         $users = User::query()
-            ->with(['roles', 'permissions'])
+            ->with(['roles.permissions', 'permissions'])
             ->latest('id')
             ->paginate($perPage);
 
@@ -80,7 +80,7 @@ class UserController extends Controller
             ], 500);
         }
 
-        $user->load(['roles', 'permissions']);
+        $user->load(['roles.permissions', 'permissions']);
 
         return response()->json([
             'success' => true,
@@ -91,7 +91,7 @@ class UserController extends Controller
 
     public function show(User $user): JsonResponse
     {
-        $user->load(['roles', 'permissions']);
+        $user->load(['roles.permissions', 'permissions']);
 
         return response()->json([
             'success' => true,
@@ -170,7 +170,7 @@ class UserController extends Controller
             ], 500);
         }
 
-        $user->load(['roles', 'permissions']);
+        $user->load(['roles.permissions', 'permissions']);
 
         return response()->json([
             'success' => true,
