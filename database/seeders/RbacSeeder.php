@@ -17,9 +17,7 @@ class RbacSeeder extends Seeder
         try {
             app(PermissionRegistrar::class)->forgetCachedPermissions();
 
-            $guardName = array_key_exists('sanctum', config('auth.guards', []))
-                ? 'sanctum'
-                : config('auth.defaults.guard');
+            $guardName = "sanctum";
 
             $permissions = [
                 'admin.access',
@@ -38,6 +36,11 @@ class RbacSeeder extends Seeder
                 'permissions.view',
                 'permissions.create',
                 'permissions.delete',
+
+                'warehouses.view',
+                'warehouses.create',
+                'warehouses.update',
+                'warehouses.delete',
             ];
 
             foreach ($permissions as $permissionName) {
@@ -63,7 +66,13 @@ class RbacSeeder extends Seeder
             ]);
 
             $adminRole->syncPermissions(Permission::query()->where('guard_name', $guardName)->pluck('name')->all());
-            $warehouseOperatorRole->syncPermissions(['app.access']);
+            $warehouseOperatorRole->syncPermissions([
+                'app.access',
+                'warehouses.view',
+                'warehouses.create',
+                'warehouses.update',
+                'warehouses.delete',
+            ]);
             $productionManagerRole->syncPermissions(['app.access']);
 
             DB::commit();

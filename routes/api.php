@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\WarehouseController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/login', [AuthController::class, 'login']);
@@ -28,5 +29,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('permissions', [PermissionController::class, 'index'])->middleware('permission:permissions.view,sanctum');
         Route::post('permissions', [PermissionController::class, 'store'])->middleware('permission:permissions.create,sanctum');
         Route::delete('permissions/{permission}', [PermissionController::class, 'destroy'])->middleware('permission:permissions.delete,sanctum');
+
+        Route::get('warehouses', [WarehouseController::class, 'index'])->middleware('permission:warehouses.view,sanctum');
+        Route::post('warehouses', [WarehouseController::class, 'store'])->middleware('permission:warehouses.create,sanctum');
+        Route::get('warehouses/{warehouse}', [WarehouseController::class, 'show'])->middleware('permission:warehouses.view,sanctum');
+        Route::put('warehouses/{warehouse}', [WarehouseController::class, 'update'])->middleware('permission:warehouses.update,sanctum');
+        Route::delete('warehouses/{warehouse}', [WarehouseController::class, 'destroy'])->middleware('permission:warehouses.delete,sanctum');
     });
 });
