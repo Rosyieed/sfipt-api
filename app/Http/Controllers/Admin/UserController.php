@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -17,16 +18,63 @@ class UserController extends Controller
         $perPage = (int) $request->query('per_page', 15);
         $perPage = max(1, min(100, $perPage));
 
-        $users = User::query()
-            ->with(['roles.permissions', 'permissions'])
-            ->latest('id')
-            ->paginate($perPage);
+        $sortableFields = ['id', 'name', 'email', 'created_at'];
+        $sort = $request->query('sort', 'name');
+        $direction = strtolower((string) $request->query('direction', 'asc')) === 'desc' ? 'desc' : 'asc';
+
+        if (! in_array($sort, $sortableFields, true)) {
+            $sort = 'id';
+        }
+
+        $users = in_array($sort, ['name', 'email'], true)
+            ? $this->paginateNaturalSort($request, $sort, $direction, $perPage)
+            : User::query()
+                ->with(['roles.permissions', 'permissions'])
+                ->orderBy($sort, $direction)
+                ->paginate($perPage);
 
         return response()->json([
             'success' => true,
             'message' => 'Users retrieved successfully',
             'data' => $users,
         ]);
+    }
+
+    /**
+     * @param 'name'|'email' $sort
+     * @param 'asc'|'desc' $direction
+     */
+    private function paginateNaturalSort(
+        Request $request,
+        string $sort,
+        string $direction,
+        int $perPage,
+    ): LengthAwarePaginator {
+        $page = max(1, (int) $request->query('page', 1));
+        $users = User::query()
+            ->with(['roles.permissions', 'permissions'])
+            ->get()
+            ->sort(function (User $first, User $second) use ($sort, $direction): int {
+                $result = strnatcasecmp((string) $first->{$sort}, (string) $second->{$sort});
+
+                if ($result === 0) {
+                    $result = $first->id <=> $second->id;
+                }
+
+                return $direction === 'asc' ? $result : -$result;
+            })
+            ->values();
+
+        return new LengthAwarePaginator(
+            $users->forPage($page, $perPage)->values(),
+            $users->count(),
+            $perPage,
+            $page,
+            [
+                'path' => $request->url(),
+                'query' => $request->query(),
+            ],
+        );
     }
 
     public function store(Request $request): JsonResponse
