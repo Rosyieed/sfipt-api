@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\RoleController;
+use App\Http\Controllers\Admin\UnitController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\WarehouseController;
 use Illuminate\Support\Facades\Route;
@@ -41,5 +42,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('categories', [CategoryController::class, 'store'])->middleware('permission:categories.create,sanctum');
         Route::get('categories/{category}', [CategoryController::class, 'show'])->middleware('permission:categories.view,sanctum');
         Route::put('categories/{category}', [CategoryController::class, 'update'])->middleware('permission:categories.update,sanctum');
+
+        Route::get('units', [UnitController::class, 'index'])->middleware('permission:units.view,sanctum');
+        Route::post('units', [UnitController::class, 'store'])->middleware('permission:units.create,sanctum');
+        Route::get('units/{unit}', [UnitController::class, 'show'])->middleware('permission:units.view,sanctum');
+        Route::put('units/{unit}', [UnitController::class, 'update'])->middleware('permission:units.update,sanctum');
     });
 });

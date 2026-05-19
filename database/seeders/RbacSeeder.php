@@ -45,6 +45,10 @@ class RbacSeeder extends Seeder
                 'categories.view',
                 'categories.create',
                 'categories.update',
+
+                'units.view',
+                'units.create',
+                'units.update',
             ];
 
             foreach ($permissions as $permissionName) {
@@ -79,6 +83,9 @@ class RbacSeeder extends Seeder
                 'categories.view',
                 'categories.create',
                 'categories.update',
+                'units.view',
+                'units.create',
+                'units.update',
             ]);
             $productionManagerRole->syncPermissions(['app.access']);
 
