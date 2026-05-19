@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call(RbacSeeder::class);
+        $this->call(CategorySeeder::class);
 
         $adminEmail = env('DEFAULT_ADMIN_EMAIL', 'admin@gmail.com');
         $adminPassword = env('DEFAULT_ADMIN_PASSWORD', 'password');

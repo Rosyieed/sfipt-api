@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\UserController;
@@ -35,5 +36,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('warehouses/{warehouse}', [WarehouseController::class, 'show'])->middleware('permission:warehouses.view,sanctum');
         Route::put('warehouses/{warehouse}', [WarehouseController::class, 'update'])->middleware('permission:warehouses.update,sanctum');
         Route::delete('warehouses/{warehouse}', [WarehouseController::class, 'destroy'])->middleware('permission:warehouses.delete,sanctum');
+
+        Route::get('categories', [CategoryController::class, 'index'])->middleware('permission:categories.view,sanctum');
+        Route::post('categories', [CategoryController::class, 'store'])->middleware('permission:categories.create,sanctum');
+        Route::get('categories/{category}', [CategoryController::class, 'show'])->middleware('permission:categories.view,sanctum');
+        Route::put('categories/{category}', [CategoryController::class, 'update'])->middleware('permission:categories.update,sanctum');
     });
 });
