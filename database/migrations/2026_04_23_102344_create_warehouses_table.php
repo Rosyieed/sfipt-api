@@ -13,9 +13,10 @@ return new class extends Migration
     {
         Schema::create('warehouses', function (Blueprint $table) {
             $table->id();
+            $table->string('code', 50)->unique();
             $table->string('name');
-            $table->string('location');
-            $table->enum('type', ['raw', 'wip', 'finished'])->default('raw');
+            $table->string('location')->nullable();
+            $table->enum('type', ['raw', 'wip', 'finished', 'general'])->default('raw');
             $table->boolean('is_active')->default(true);
             $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
             $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null');

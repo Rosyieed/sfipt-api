@@ -1,12 +1,12 @@
 <?php
 
-use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\Admin\CategoryController;
 use App\Http\Controllers\Api\V1\Admin\PermissionController;
 use App\Http\Controllers\Api\V1\Admin\RoleController;
 use App\Http\Controllers\Api\V1\Admin\UnitController;
 use App\Http\Controllers\Api\V1\Admin\UserController;
 use App\Http\Controllers\Api\V1\Admin\WarehouseController;
+use App\Http\Controllers\Api\V1\AuthController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -43,11 +43,13 @@ Route::prefix('v1')->group(function () {
             Route::post('categories', [CategoryController::class, 'store'])->middleware('permission:categories.create,sanctum');
             Route::get('categories/{category}', [CategoryController::class, 'show'])->middleware('permission:categories.view,sanctum');
             Route::put('categories/{category}', [CategoryController::class, 'update'])->middleware('permission:categories.update,sanctum');
+            Route::delete('categories/{category}', [CategoryController::class, 'destroy'])->middleware('permission:categories.delete,sanctum');
 
             Route::get('units', [UnitController::class, 'index'])->middleware('permission:units.view,sanctum');
             Route::post('units', [UnitController::class, 'store'])->middleware('permission:units.create,sanctum');
             Route::get('units/{unit}', [UnitController::class, 'show'])->middleware('permission:units.view,sanctum');
             Route::put('units/{unit}', [UnitController::class, 'update'])->middleware('permission:units.update,sanctum');
+            Route::delete('units/{unit}', [UnitController::class, 'destroy'])->middleware('permission:units.delete,sanctum');
         });
     });
 });

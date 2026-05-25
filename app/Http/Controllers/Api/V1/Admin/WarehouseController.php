@@ -3,13 +3,16 @@
 namespace App\Http\Controllers\Api\V1\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\V1\Admin\MasterData\StoreWarehouseRequest;
+use App\Http\Requests\Api\V1\Admin\MasterData\UpdateWarehouseRequest;
+use App\Http\Resources\Api\V1\Admin\WarehouseResource;
 use App\Models\Warehouse;
+use App\Support\ApiResponse;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rule;
 
 class WarehouseController extends Controller
 {
@@ -18,39 +21,43 @@ class WarehouseController extends Controller
         $perPage = (int) $request->query('per_page', 15);
         $perPage = max(1, min(100, $perPage));
 
-        $sortableFields = ['id', 'name', 'location', 'type', 'is_active', 'created_at'];
-        $sort = $request->query('sort', 'name');
+        $sortableFields = ['id', 'code', 'name', 'location', 'type', 'is_active', 'created_at'];
+        $sort = $request->query('sort', 'code');
         $direction = strtolower((string) $request->query('direction', 'asc')) === 'desc' ? 'desc' : 'asc';
 
         if (! in_array($sort, $sortableFields, true)) {
             $sort = 'id';
         }
 
-        $warehouses = in_array($sort, ['name', 'location'], true)
-            ? $this->paginateNaturalSort($request, $sort, $direction, $perPage)
+        $search = trim((string) $request->query('search', $request->query('q', '')));
+
+        $warehouses = in_array($sort, ['code', 'name', 'location'], true)
+            ? $this->paginateNaturalSort($request, $sort, $direction, $perPage, $search)
             : Warehouse::query()
+                ->when($search !== '', fn (Builder $query) => $this->applySearch($query, $search))
                 ->orderBy($sort, $direction)
                 ->paginate($perPage);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Warehouses retrieved successfully',
-            'data' => $warehouses,
-        ]);
+        return ApiResponse::paginated(
+            'Warehouses retrieved successfully',
+            WarehouseResource::collection($warehouses),
+        );
     }
 
     /**
-     * @param 'name'|'location' $sort
-     * @param 'asc'|'desc' $direction
+     * @param  'code'|'name'|'location'  $sort
+     * @param  'asc'|'desc'  $direction
      */
     private function paginateNaturalSort(
         Request $request,
         string $sort,
         string $direction,
         int $perPage,
+        string $search,
     ): LengthAwarePaginator {
         $page = max(1, (int) $request->query('page', 1));
         $warehouses = Warehouse::query()
+            ->when($search !== '', fn (Builder $query) => $this->applySearch($query, $search))
             ->get()
             ->sort(function (Warehouse $first, Warehouse $second) use ($sort, $direction): int {
                 $result = strnatcasecmp((string) $first->{$sort}, (string) $second->{$sort});
@@ -74,32 +81,35 @@ class WarehouseController extends Controller
             ],
         );
     }
-    public function store(Request $request): JsonResponse
+
+    private function applySearch(Builder $query, string $search): void
     {
-        $validator = Validator::make($request->all(), [
-            'name' => ['required', 'string', 'max:255'],
-            'location' => ['required', 'string', 'max:255'],
-            'type' => ['sometimes', 'string', Rule::in(['raw', 'wip', 'finished'])],
-            'is_active' => ['sometimes', 'boolean'],
-        ]);
+        $query->where(function ($query) use ($search): void {
+            $query
+                ->where('code', 'like', "%{$search}%")
+                ->orWhere('name', 'like', "%{$search}%")
+                ->orWhere('location', 'like', "%{$search}%")
+                ->orWhere('type', 'like', "%{$search}%");
+        });
+    }
 
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation failed',
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-
+    public function store(StoreWarehouseRequest $request): JsonResponse
+    {
         DB::beginTransaction();
 
         try {
             $payload = [
+                'code' => $request->string('code')->toString(),
                 'name' => $request->string('name')->toString(),
-                'location' => $request->string('location')->toString(),
                 'created_by' => $request->user()?->id,
                 'updated_by' => $request->user()?->id,
             ];
+
+            if ($request->has('location')) {
+                $payload['location'] = $request->input('location') === null
+                    ? null
+                    : (string) $request->input('location');
+            }
 
             if ($request->has('type')) {
                 $payload['type'] = $request->string('type')->toString();
@@ -115,56 +125,43 @@ class WarehouseController extends Controller
         } catch (\Throwable $e) {
             DB::rollBack();
 
-            return response()->json([
-                'success' => false,
-                'message' => 'Server error',
-            ], 500);
+            return ApiResponse::error('Server error', status: 500);
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Warehouse created successfully',
-            'data' => $warehouse,
-        ], 201);
+        return ApiResponse::success(
+            'Warehouse created successfully',
+            new WarehouseResource($warehouse),
+            201,
+        );
     }
 
     public function show(Warehouse $warehouse): JsonResponse
     {
-        return response()->json([
-            'success' => true,
-            'message' => 'Warehouse retrieved successfully',
-            'data' => $warehouse,
-        ]);
+        return ApiResponse::success(
+            'Warehouse retrieved successfully',
+            new WarehouseResource($warehouse),
+        );
     }
 
-    public function update(Request $request, Warehouse $warehouse): JsonResponse
+    public function update(UpdateWarehouseRequest $request, Warehouse $warehouse): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
-            'name' => ['sometimes', 'string', 'max:255'],
-            'location' => ['sometimes', 'string', 'max:255'],
-            'type' => ['sometimes', 'string', Rule::in(['raw', 'wip', 'finished'])],
-            'is_active' => ['sometimes', 'boolean'],
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation failed',
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-
         DB::beginTransaction();
 
         try {
             $payload = [];
+
+            if ($request->has('code')) {
+                $payload['code'] = $request->string('code')->toString();
+            }
 
             if ($request->has('name')) {
                 $payload['name'] = $request->string('name')->toString();
             }
 
             if ($request->has('location')) {
-                $payload['location'] = $request->string('location')->toString();
+                $payload['location'] = $request->input('location') === null
+                    ? null
+                    : (string) $request->input('location');
             }
 
             if ($request->has('type')) {
@@ -183,20 +180,16 @@ class WarehouseController extends Controller
         } catch (\Throwable $e) {
             DB::rollBack();
 
-            return response()->json([
-                'success' => false,
-                'message' => 'Server error',
-            ], 500);
+            return ApiResponse::error('Server error', status: 500);
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Warehouse updated successfully',
-            'data' => $warehouse,
-        ]);
+        return ApiResponse::success(
+            'Warehouse updated successfully',
+            new WarehouseResource($warehouse->refresh()),
+        );
     }
 
-    public function destroy(Request $request, Warehouse $warehouse): JsonResponse
+    public function destroy(Warehouse $warehouse): JsonResponse
     {
         DB::beginTransaction();
 
@@ -207,15 +200,9 @@ class WarehouseController extends Controller
         } catch (\Throwable $e) {
             DB::rollBack();
 
-            return response()->json([
-                'success' => false,
-                'message' => 'Warehouse is still used by other records or Server error.',
-            ], 500);
+            return ApiResponse::error('Warehouse is still used by other records or Server error.', status: 500);
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Warehouse deleted successfully',
-        ]);
+        return ApiResponse::success('Warehouse deleted successfully');
     }
 }

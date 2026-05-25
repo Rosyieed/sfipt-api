@@ -3,12 +3,14 @@
 namespace App\Http\Controllers\Api\V1\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\V1\Admin\MasterData\StoreUnitRequest;
+use App\Http\Requests\Api\V1\Admin\MasterData\UpdateUnitRequest;
+use App\Http\Resources\Api\V1\Admin\UnitResource;
 use App\Models\Unit;
+use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rule;
 
 class UnitController extends Controller
 {
@@ -25,40 +27,28 @@ class UnitController extends Controller
             $sort = 'id';
         }
 
+        $search = trim((string) $request->query('search', $request->query('q', '')));
+
         $units = Unit::query()
+            ->when($search !== '', function ($query) use ($search): void {
+                $query->where(function ($query) use ($search): void {
+                    $query
+                        ->where('code', 'like', "%{$search}%")
+                        ->orWhere('name', 'like', "%{$search}%")
+                        ->orWhere('description', 'like', "%{$search}%");
+                });
+            })
             ->orderBy($sort, $direction)
             ->paginate($perPage);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Units retrieved successfully',
-            'data' => $units,
-        ]);
+        return ApiResponse::paginated(
+            'Units retrieved successfully',
+            UnitResource::collection($units),
+        );
     }
 
-    public function store(Request $request): JsonResponse
+    public function store(StoreUnitRequest $request): JsonResponse
     {
-        if ($request->has('code')) {
-            $request->merge([
-                'code' => strtoupper($request->string('code')->toString()),
-            ]);
-        }
-
-        $validator = Validator::make($request->all(), [
-            'code' => ['required', 'string', 'max:50', Rule::unique('units', 'code')],
-            'name' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
-            'is_active' => ['sometimes', 'boolean'],
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation failed',
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-
         DB::beginTransaction();
 
         try {
@@ -83,51 +73,26 @@ class UnitController extends Controller
         } catch (\Throwable $e) {
             DB::rollBack();
 
-            return response()->json([
-                'success' => false,
-                'message' => 'Server error',
-            ], 500);
+            return ApiResponse::error('Server error', status: 500);
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Unit created successfully',
-            'data' => $unit,
-        ], 201);
+        return ApiResponse::success(
+            'Unit created successfully',
+            new UnitResource($unit),
+            201,
+        );
     }
 
     public function show(Unit $unit): JsonResponse
     {
-        return response()->json([
-            'success' => true,
-            'message' => 'Unit retrieved successfully',
-            'data' => $unit,
-        ]);
+        return ApiResponse::success(
+            'Unit retrieved successfully',
+            new UnitResource($unit),
+        );
     }
 
-    public function update(Request $request, Unit $unit): JsonResponse
+    public function update(UpdateUnitRequest $request, Unit $unit): JsonResponse
     {
-        if ($request->has('code')) {
-            $request->merge([
-                'code' => strtoupper($request->string('code')->toString()),
-            ]);
-        }
-
-        $validator = Validator::make($request->all(), [
-            'code' => ['sometimes', 'string', 'max:50', Rule::unique('units', 'code')->ignore($unit->id)],
-            'name' => ['sometimes', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
-            'is_active' => ['sometimes', 'boolean'],
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation failed',
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-
         DB::beginTransaction();
 
         try {
@@ -157,16 +122,29 @@ class UnitController extends Controller
         } catch (\Throwable $e) {
             DB::rollBack();
 
-            return response()->json([
-                'success' => false,
-                'message' => 'Server error',
-            ], 500);
+            return ApiResponse::error('Server error', status: 500);
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Unit updated successfully',
-            'data' => $unit,
-        ]);
+        return ApiResponse::success(
+            'Unit updated successfully',
+            new UnitResource($unit->refresh()),
+        );
+    }
+
+    public function destroy(Unit $unit): JsonResponse
+    {
+        DB::beginTransaction();
+
+        try {
+            $unit->delete();
+
+            DB::commit();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            return ApiResponse::error('Unit is still used by other records or Server error.', status: 500);
+        }
+
+        return ApiResponse::success('Unit deleted successfully');
     }
 }

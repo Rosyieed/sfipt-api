@@ -3,12 +3,14 @@
 namespace App\Http\Controllers\Api\V1\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\V1\Admin\MasterData\StoreCategoryRequest;
+use App\Http\Requests\Api\V1\Admin\MasterData\UpdateCategoryRequest;
+use App\Http\Resources\Api\V1\Admin\CategoryResource;
 use App\Models\Category;
+use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rule;
 
 class CategoryController extends Controller
 {
@@ -25,40 +27,28 @@ class CategoryController extends Controller
             $sort = 'id';
         }
 
+        $search = trim((string) $request->query('search', $request->query('q', '')));
+
         $categories = Category::query()
+            ->when($search !== '', function ($query) use ($search): void {
+                $query->where(function ($query) use ($search): void {
+                    $query
+                        ->where('code', 'like', "%{$search}%")
+                        ->orWhere('name', 'like', "%{$search}%")
+                        ->orWhere('description', 'like', "%{$search}%");
+                });
+            })
             ->orderBy($sort, $direction)
             ->paginate($perPage);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Categories retrieved successfully',
-            'data' => $categories,
-        ]);
+        return ApiResponse::paginated(
+            'Categories retrieved successfully',
+            CategoryResource::collection($categories),
+        );
     }
 
-    public function store(Request $request): JsonResponse
+    public function store(StoreCategoryRequest $request): JsonResponse
     {
-        if ($request->has('code')) {
-            $request->merge([
-                'code' => strtoupper($request->string('code')->toString()),
-            ]);
-        }
-
-        $validator = Validator::make($request->all(), [
-            'code' => ['required', 'string', 'max:50', Rule::unique('categories', 'code')],
-            'name' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
-            'is_active' => ['sometimes', 'boolean'],
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation failed',
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-
         DB::beginTransaction();
 
         try {
@@ -83,51 +73,26 @@ class CategoryController extends Controller
         } catch (\Throwable $e) {
             DB::rollBack();
 
-            return response()->json([
-                'success' => false,
-                'message' => 'Server error',
-            ], 500);
+            return ApiResponse::error('Server error', status: 500);
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Category created successfully',
-            'data' => $category,
-        ], 201);
+        return ApiResponse::success(
+            'Category created successfully',
+            new CategoryResource($category),
+            201,
+        );
     }
 
     public function show(Category $category): JsonResponse
     {
-        return response()->json([
-            'success' => true,
-            'message' => 'Category retrieved successfully',
-            'data' => $category,
-        ]);
+        return ApiResponse::success(
+            'Category retrieved successfully',
+            new CategoryResource($category),
+        );
     }
 
-    public function update(Request $request, Category $category): JsonResponse
+    public function update(UpdateCategoryRequest $request, Category $category): JsonResponse
     {
-        if ($request->has('code')) {
-            $request->merge([
-                'code' => strtoupper($request->string('code')->toString()),
-            ]);
-        }
-
-        $validator = Validator::make($request->all(), [
-            'code' => ['sometimes', 'string', 'max:50', Rule::unique('categories', 'code')->ignore($category->id)],
-            'name' => ['sometimes', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
-            'is_active' => ['sometimes', 'boolean'],
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation failed',
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-
         DB::beginTransaction();
 
         try {
@@ -157,17 +122,29 @@ class CategoryController extends Controller
         } catch (\Throwable $e) {
             DB::rollBack();
 
-            return response()->json([
-                'success' => false,
-                'message' => 'Server error',
-            ], 500);
+            return ApiResponse::error('Server error', status: 500);
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Category updated successfully',
-            'data' => $category,
-        ]);
+        return ApiResponse::success(
+            'Category updated successfully',
+            new CategoryResource($category->refresh()),
+        );
     }
 
+    public function destroy(Category $category): JsonResponse
+    {
+        DB::beginTransaction();
+
+        try {
+            $category->delete();
+
+            DB::commit();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            return ApiResponse::error('Category is still used by other records or Server error.', status: 500);
+        }
+
+        return ApiResponse::success('Category deleted successfully');
+    }
 }

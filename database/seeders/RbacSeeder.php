@@ -17,7 +17,7 @@ class RbacSeeder extends Seeder
         try {
             app(PermissionRegistrar::class)->forgetCachedPermissions();
 
-            $guardName = "sanctum";
+            $guardName = 'sanctum';
 
             $permissions = [
                 'admin.access',
@@ -45,10 +45,12 @@ class RbacSeeder extends Seeder
                 'categories.view',
                 'categories.create',
                 'categories.update',
+                'categories.delete',
 
                 'units.view',
                 'units.create',
                 'units.update',
+                'units.delete',
             ];
 
             foreach ($permissions as $permissionName) {
@@ -83,9 +85,11 @@ class RbacSeeder extends Seeder
                 'categories.view',
                 'categories.create',
                 'categories.update',
+                'categories.delete',
                 'units.view',
                 'units.create',
                 'units.update',
+                'units.delete',
             ]);
             $productionManagerRole->syncPermissions(['app.access']);
 

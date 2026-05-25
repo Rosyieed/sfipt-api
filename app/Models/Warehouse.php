@@ -11,6 +11,7 @@ class Warehouse extends Model
      * @var list<string>
      */
     protected $fillable = [
+        'code',
         'name',
         'location',
         'type',
@@ -39,4 +40,3 @@ class Warehouse extends Model
         return $this->belongsTo(User::class, 'updated_by');
     }
 }
-
