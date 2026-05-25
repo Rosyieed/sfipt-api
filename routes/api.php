@@ -1,51 +1,53 @@
 <?php
 
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\Admin\CategoryController;
-use App\Http\Controllers\Admin\PermissionController;
-use App\Http\Controllers\Admin\RoleController;
-use App\Http\Controllers\Admin\UnitController;
-use App\Http\Controllers\Admin\UserController;
-use App\Http\Controllers\Admin\WarehouseController;
+use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\Admin\CategoryController;
+use App\Http\Controllers\Api\V1\Admin\PermissionController;
+use App\Http\Controllers\Api\V1\Admin\RoleController;
+use App\Http\Controllers\Api\V1\Admin\UnitController;
+use App\Http\Controllers\Api\V1\Admin\UserController;
+use App\Http\Controllers\Api\V1\Admin\WarehouseController;
 use Illuminate\Support\Facades\Route;
 
-Route::post('/login', [AuthController::class, 'login']);
+Route::prefix('v1')->group(function () {
+    Route::post('/login', [AuthController::class, 'login']);
 
-Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/me', [AuthController::class, 'me']);
-    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::get('/me', [AuthController::class, 'me']);
+        Route::post('/logout', [AuthController::class, 'logout']);
 
-    Route::prefix('admin')->group(function () {
-        Route::get('users', [UserController::class, 'index'])->middleware('permission:users.view,sanctum');
-        Route::post('users', [UserController::class, 'store'])->middleware('permission:users.create,sanctum');
-        Route::get('users/{user}', [UserController::class, 'show'])->middleware('permission:users.view,sanctum');
-        Route::put('users/{user}', [UserController::class, 'update'])->middleware('permission:users.update,sanctum');
-        Route::delete('users/{user}', [UserController::class, 'destroy'])->middleware('permission:users.delete,sanctum');
+        Route::prefix('admin')->group(function () {
+            Route::get('users', [UserController::class, 'index'])->middleware('permission:users.view,sanctum');
+            Route::post('users', [UserController::class, 'store'])->middleware('permission:users.create,sanctum');
+            Route::get('users/{user}', [UserController::class, 'show'])->middleware('permission:users.view,sanctum');
+            Route::put('users/{user}', [UserController::class, 'update'])->middleware('permission:users.update,sanctum');
+            Route::delete('users/{user}', [UserController::class, 'destroy'])->middleware('permission:users.delete,sanctum');
 
-        Route::get('roles', [RoleController::class, 'index'])->middleware('permission:roles.view,sanctum');
-        Route::post('roles', [RoleController::class, 'store'])->middleware('permission:roles.create,sanctum');
-        Route::get('roles/{role}', [RoleController::class, 'show'])->middleware('permission:roles.view,sanctum');
-        Route::put('roles/{role}', [RoleController::class, 'update'])->middleware('permission:roles.update,sanctum');
-        Route::delete('roles/{role}', [RoleController::class, 'destroy'])->middleware('permission:roles.delete,sanctum');
+            Route::get('roles', [RoleController::class, 'index'])->middleware('permission:roles.view,sanctum');
+            Route::post('roles', [RoleController::class, 'store'])->middleware('permission:roles.create,sanctum');
+            Route::get('roles/{role}', [RoleController::class, 'show'])->middleware('permission:roles.view,sanctum');
+            Route::put('roles/{role}', [RoleController::class, 'update'])->middleware('permission:roles.update,sanctum');
+            Route::delete('roles/{role}', [RoleController::class, 'destroy'])->middleware('permission:roles.delete,sanctum');
 
-        Route::get('permissions', [PermissionController::class, 'index'])->middleware('permission:permissions.view,sanctum');
-        Route::post('permissions', [PermissionController::class, 'store'])->middleware('permission:permissions.create,sanctum');
-        Route::delete('permissions/{permission}', [PermissionController::class, 'destroy'])->middleware('permission:permissions.delete,sanctum');
+            Route::get('permissions', [PermissionController::class, 'index'])->middleware('permission:permissions.view,sanctum');
+            Route::post('permissions', [PermissionController::class, 'store'])->middleware('permission:permissions.create,sanctum');
+            Route::delete('permissions/{permission}', [PermissionController::class, 'destroy'])->middleware('permission:permissions.delete,sanctum');
 
-        Route::get('warehouses', [WarehouseController::class, 'index'])->middleware('permission:warehouses.view,sanctum');
-        Route::post('warehouses', [WarehouseController::class, 'store'])->middleware('permission:warehouses.create,sanctum');
-        Route::get('warehouses/{warehouse}', [WarehouseController::class, 'show'])->middleware('permission:warehouses.view,sanctum');
-        Route::put('warehouses/{warehouse}', [WarehouseController::class, 'update'])->middleware('permission:warehouses.update,sanctum');
-        Route::delete('warehouses/{warehouse}', [WarehouseController::class, 'destroy'])->middleware('permission:warehouses.delete,sanctum');
+            Route::get('warehouses', [WarehouseController::class, 'index'])->middleware('permission:warehouses.view,sanctum');
+            Route::post('warehouses', [WarehouseController::class, 'store'])->middleware('permission:warehouses.create,sanctum');
+            Route::get('warehouses/{warehouse}', [WarehouseController::class, 'show'])->middleware('permission:warehouses.view,sanctum');
+            Route::put('warehouses/{warehouse}', [WarehouseController::class, 'update'])->middleware('permission:warehouses.update,sanctum');
+            Route::delete('warehouses/{warehouse}', [WarehouseController::class, 'destroy'])->middleware('permission:warehouses.delete,sanctum');
 
-        Route::get('categories', [CategoryController::class, 'index'])->middleware('permission:categories.view,sanctum');
-        Route::post('categories', [CategoryController::class, 'store'])->middleware('permission:categories.create,sanctum');
-        Route::get('categories/{category}', [CategoryController::class, 'show'])->middleware('permission:categories.view,sanctum');
-        Route::put('categories/{category}', [CategoryController::class, 'update'])->middleware('permission:categories.update,sanctum');
+            Route::get('categories', [CategoryController::class, 'index'])->middleware('permission:categories.view,sanctum');
+            Route::post('categories', [CategoryController::class, 'store'])->middleware('permission:categories.create,sanctum');
+            Route::get('categories/{category}', [CategoryController::class, 'show'])->middleware('permission:categories.view,sanctum');
+            Route::put('categories/{category}', [CategoryController::class, 'update'])->middleware('permission:categories.update,sanctum');
 
-        Route::get('units', [UnitController::class, 'index'])->middleware('permission:units.view,sanctum');
-        Route::post('units', [UnitController::class, 'store'])->middleware('permission:units.create,sanctum');
-        Route::get('units/{unit}', [UnitController::class, 'show'])->middleware('permission:units.view,sanctum');
-        Route::put('units/{unit}', [UnitController::class, 'update'])->middleware('permission:units.update,sanctum');
+            Route::get('units', [UnitController::class, 'index'])->middleware('permission:units.view,sanctum');
+            Route::post('units', [UnitController::class, 'store'])->middleware('permission:units.create,sanctum');
+            Route::get('units/{unit}', [UnitController::class, 'show'])->middleware('permission:units.view,sanctum');
+            Route::put('units/{unit}', [UnitController::class, 'update'])->middleware('permission:units.update,sanctum');
+        });
     });
 });

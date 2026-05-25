@@ -1,16 +1,16 @@
 <?php
 
-namespace App\Http\Controllers\Admin;
+namespace App\Http\Controllers\Api\V1\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Unit;
+use App\Models\Category;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 
-class UnitController extends Controller
+class CategoryController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
@@ -25,14 +25,14 @@ class UnitController extends Controller
             $sort = 'id';
         }
 
-        $units = Unit::query()
+        $categories = Category::query()
             ->orderBy($sort, $direction)
             ->paginate($perPage);
 
         return response()->json([
             'success' => true,
-            'message' => 'Units retrieved successfully',
-            'data' => $units,
+            'message' => 'Categories retrieved successfully',
+            'data' => $categories,
         ]);
     }
 
@@ -45,7 +45,7 @@ class UnitController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'code' => ['required', 'string', 'max:50', Rule::unique('units', 'code')],
+            'code' => ['required', 'string', 'max:50', Rule::unique('categories', 'code')],
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'is_active' => ['sometimes', 'boolean'],
@@ -77,7 +77,7 @@ class UnitController extends Controller
                 $payload['is_active'] = (bool) $request->boolean('is_active');
             }
 
-            $unit = Unit::create($payload);
+            $category = Category::create($payload);
 
             DB::commit();
         } catch (\Throwable $e) {
@@ -91,21 +91,21 @@ class UnitController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Unit created successfully',
-            'data' => $unit,
+            'message' => 'Category created successfully',
+            'data' => $category,
         ], 201);
     }
 
-    public function show(Unit $unit): JsonResponse
+    public function show(Category $category): JsonResponse
     {
         return response()->json([
             'success' => true,
-            'message' => 'Unit retrieved successfully',
-            'data' => $unit,
+            'message' => 'Category retrieved successfully',
+            'data' => $category,
         ]);
     }
 
-    public function update(Request $request, Unit $unit): JsonResponse
+    public function update(Request $request, Category $category): JsonResponse
     {
         if ($request->has('code')) {
             $request->merge([
@@ -114,7 +114,7 @@ class UnitController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'code' => ['sometimes', 'string', 'max:50', Rule::unique('units', 'code')->ignore($unit->id)],
+            'code' => ['sometimes', 'string', 'max:50', Rule::unique('categories', 'code')->ignore($category->id)],
             'name' => ['sometimes', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'is_active' => ['sometimes', 'boolean'],
@@ -151,7 +151,7 @@ class UnitController extends Controller
                 $payload['is_active'] = (bool) $request->boolean('is_active');
             }
 
-            $unit->update($payload);
+            $category->update($payload);
 
             DB::commit();
         } catch (\Throwable $e) {
@@ -165,8 +165,9 @@ class UnitController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Unit updated successfully',
-            'data' => $unit,
+            'message' => 'Category updated successfully',
+            'data' => $category,
         ]);
     }
+
 }
