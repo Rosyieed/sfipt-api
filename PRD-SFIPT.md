@@ -262,11 +262,21 @@ Mengelola satuan barang seperti pcs, kg, liter, meter, box, dan lain-lain.
 
 | Method | Endpoint | Description |
 |---|---|---|
-| GET | `/api/v1/units` | List unit |
-| POST | `/api/v1/units` | Create unit |
-| GET | `/api/v1/units/{id}` | Detail unit |
-| PUT | `/api/v1/units/{id}` | Update unit |
-| DELETE | `/api/v1/units/{id}` | Delete unit |
+| GET | `/api/v1/inventory/units` | List unit |
+| POST | `/api/v1/inventory/units` | Create unit |
+| GET | `/api/v1/inventory/units/{id}` | Detail unit |
+| PUT | `/api/v1/inventory/units/{id}` | Update unit |
+| DELETE | `/api/v1/inventory/units/{id}` | Delete unit |
+
+### Query Parameters
+
+| Parameter | Example | Description |
+|---|---|---|
+| search | `?search=kg` | Search by code/name/description |
+| q | `?q=kg` | Alias untuk search |
+| per_page | `?per_page=10` | Pagination |
+| sort | `?sort=code` | Sort field |
+| direction | `?direction=asc` | Sort direction |
 
 ---
 
@@ -300,19 +310,21 @@ Mengelola kategori produk, misalnya bahan baku, bahan jadi, sparepart, packaging
 
 | Method | Endpoint | Description |
 |---|---|---|
-| GET | `/api/v1/categories` | List category |
-| POST | `/api/v1/categories` | Create category |
-| GET | `/api/v1/categories/{id}` | Detail category |
-| PUT | `/api/v1/categories/{id}` | Update category |
-| DELETE | `/api/v1/categories/{id}` | Delete category |
+| GET | `/api/v1/inventory/categories` | List category |
+| POST | `/api/v1/inventory/categories` | Create category |
+| GET | `/api/v1/inventory/categories/{id}` | Detail category |
+| PUT | `/api/v1/inventory/categories/{id}` | Update category |
+| DELETE | `/api/v1/inventory/categories/{id}` | Delete category |
 
 ### Query Parameters
 
 | Parameter | Example | Description |
 |---|---|---|
-| search | `?search=kayu` | Search by name/code |
-| is_active | `?is_active=1` | Filter active/inactive |
+| search | `?search=kayu` | Search by code/name/description |
+| q | `?q=kayu` | Alias untuk search |
 | per_page | `?per_page=10` | Pagination |
+| sort | `?sort=code` | Sort field |
+| direction | `?direction=asc` | Sort direction |
 
 ---
 
@@ -347,11 +359,21 @@ Mengelola daftar gudang yang digunakan untuk menyimpan bahan baku, barang WIP, d
 
 | Method | Endpoint | Description |
 |---|---|---|
-| GET | `/api/v1/warehouses` | List warehouse |
-| POST | `/api/v1/warehouses` | Create warehouse |
-| GET | `/api/v1/warehouses/{id}` | Detail warehouse |
-| PUT | `/api/v1/warehouses/{id}` | Update warehouse |
-| DELETE | `/api/v1/warehouses/{id}` | Delete warehouse |
+| GET | `/api/v1/inventory/warehouses` | List warehouse |
+| POST | `/api/v1/inventory/warehouses` | Create warehouse |
+| GET | `/api/v1/inventory/warehouses/{id}` | Detail warehouse |
+| PUT | `/api/v1/inventory/warehouses/{id}` | Update warehouse |
+| DELETE | `/api/v1/inventory/warehouses/{id}` | Delete warehouse |
+
+### Query Parameters
+
+| Parameter | Example | Description |
+|---|---|---|
+| search | `?search=raw` | Search by code/name/location/type |
+| q | `?q=raw` | Alias untuk search |
+| per_page | `?per_page=10` | Pagination |
+| sort | `?sort=code` | Sort field |
+| direction | `?direction=asc` | Sort direction |
 
 ---
 
@@ -397,12 +419,12 @@ Mengelola data produk, baik bahan baku maupun barang jadi.
 
 | Method | Endpoint | Description |
 |---|---|---|
-| GET | `/api/v1/products` | List product |
-| POST | `/api/v1/products` | Create product |
-| GET | `/api/v1/products/{id}` | Detail product |
-| PUT | `/api/v1/products/{id}` | Update product |
-| DELETE | `/api/v1/products/{id}` | Delete product |
-| GET | `/api/v1/products/barcode/{barcode}` | Get product by barcode |
+| GET | `/api/v1/inventory/products` | List product |
+| POST | `/api/v1/inventory/products` | Create product |
+| GET | `/api/v1/inventory/products/{id}` | Detail product |
+| PUT | `/api/v1/inventory/products/{id}` | Update product |
+| DELETE | `/api/v1/inventory/products/{id}` | Delete product |
+| GET | `/api/v1/inventory/products/barcode/{barcode}` | Get product by barcode |
 
 ### Query Parameters
 
@@ -616,7 +638,7 @@ Membuat resep produksi untuk barang jadi.
 | GET | `/api/v1/boms/{id}` | Detail BOM |
 | PUT | `/api/v1/boms/{id}` | Update BOM |
 | DELETE | `/api/v1/boms/{id}` | Delete BOM |
-| GET | `/api/v1/products/{product_id}/boms` | Get BOM by product |
+| GET | `/api/v1/inventory/products/{product_id}/boms` | Get BOM by product |
 
 ### Create BOM Payload
 
@@ -809,10 +831,10 @@ Menampilkan ringkasan data inventory dan produksi untuk kebutuhan monitoring.
 |---|---|---|
 | Login | `/login` | Login page |
 | Dashboard | `/dashboard` | Main dashboard |
-| Units | `/master/units` | Unit management |
-| Categories | `/master/categories` | Category management |
-| Warehouses | `/master/warehouses` | Warehouse management |
-| Products | `/master/products` | Product management |
+| Units | `/inventory/units` | Unit management |
+| Categories | `/inventory/categories` | Category management |
+| Warehouses | `/inventory/warehouses` | Warehouse management |
+| Products | `/inventory/products` | Product management |
 | Stocks | `/inventory/stocks` | Current stock |
 | Mutations | `/inventory/mutations` | Stock mutation history |
 | Create Mutation | `/inventory/mutations/create` | Create stock mutation |
@@ -1093,12 +1115,14 @@ Route::prefix('v1')->group(function () {
         Route::post('/auth/logout', [AuthController::class, 'logout']);
         Route::get('/user/profile', [AuthController::class, 'profile']);
 
-        Route::apiResource('units', UnitController::class);
-        Route::apiResource('categories', CategoryController::class);
-        Route::apiResource('warehouses', WarehouseController::class);
-        Route::apiResource('products', ProductController::class);
+        Route::prefix('inventory')->group(function () {
+            Route::apiResource('units', UnitController::class);
+            Route::apiResource('categories', CategoryController::class);
+            Route::apiResource('warehouses', WarehouseController::class);
+            Route::apiResource('products', ProductController::class);
 
-        Route::get('/products/barcode/{barcode}', [ProductController::class, 'findByBarcode']);
+            Route::get('/products/barcode/{barcode}', [ProductController::class, 'findByBarcode']);
+        });
 
         Route::get('/inventory/stocks', [StockController::class, 'index']);
         Route::get('/inventory/stocks/{id}', [StockController::class, 'show']);
@@ -1109,7 +1133,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/inventory/mutations/{id}', [StockMutationController::class, 'show']);
 
         Route::apiResource('boms', BomController::class);
-        Route::get('/products/{product_id}/boms', [BomController::class, 'getByProduct']);
+        Route::get('/inventory/products/{product_id}/boms', [BomController::class, 'getByProduct']);
 
         Route::apiResource('production-orders', ProductionOrderController::class);
         Route::put('/production-orders/{id}/status', [ProductionOrderController::class, 'updateStatus']);

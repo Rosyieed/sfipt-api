@@ -32,7 +32,9 @@ Route::prefix('v1')->group(function () {
             Route::get('permissions', [PermissionController::class, 'index'])->middleware('permission:permissions.view,sanctum');
             Route::post('permissions', [PermissionController::class, 'store'])->middleware('permission:permissions.create,sanctum');
             Route::delete('permissions/{permission}', [PermissionController::class, 'destroy'])->middleware('permission:permissions.delete,sanctum');
+        });
 
+        Route::prefix('inventory')->group(function () {
             Route::get('warehouses', [WarehouseController::class, 'index'])->middleware('permission:warehouses.view,sanctum');
             Route::post('warehouses', [WarehouseController::class, 'store'])->middleware('permission:warehouses.create,sanctum');
             Route::get('warehouses/{warehouse}', [WarehouseController::class, 'show'])->middleware('permission:warehouses.view,sanctum');
