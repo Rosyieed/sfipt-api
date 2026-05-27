@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\V1\Admin\CategoryController;
 use App\Http\Controllers\Api\V1\Admin\PermissionController;
+use App\Http\Controllers\Api\V1\Admin\ProductController;
 use App\Http\Controllers\Api\V1\Admin\RoleController;
 use App\Http\Controllers\Api\V1\Admin\UnitController;
 use App\Http\Controllers\Api\V1\Admin\UserController;
@@ -52,6 +53,13 @@ Route::prefix('v1')->group(function () {
             Route::get('units/{unit}', [UnitController::class, 'show'])->middleware('permission:units.view,sanctum');
             Route::put('units/{unit}', [UnitController::class, 'update'])->middleware('permission:units.update,sanctum');
             Route::delete('units/{unit}', [UnitController::class, 'destroy'])->middleware('permission:units.delete,sanctum');
+
+            Route::get('products/barcode/{barcode}', [ProductController::class, 'findByBarcode'])->middleware('permission:products.view,sanctum');
+            Route::get('products', [ProductController::class, 'index'])->middleware('permission:products.view,sanctum');
+            Route::post('products', [ProductController::class, 'store'])->middleware('permission:products.create,sanctum');
+            Route::get('products/{product}', [ProductController::class, 'show'])->middleware('permission:products.view,sanctum');
+            Route::put('products/{product}', [ProductController::class, 'update'])->middleware('permission:products.update,sanctum');
+            Route::delete('products/{product}', [ProductController::class, 'destroy'])->middleware('permission:products.delete,sanctum');
         });
     });
 });

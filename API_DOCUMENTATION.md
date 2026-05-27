@@ -1,12 +1,62 @@
 # SFIPT API Documentation
 
 ## Base URL
-All endpoints are relative to the `/api` prefix (e.g., `http://localhost/api` or `http://localhost:8000/api`).
+
+All endpoints below are relative to the `/api/v1` prefix.
+
+Example:
+
+```http
+http://localhost/api/v1
+http://localhost:8000/api/v1
+```
 
 ## Authentication
+
 Endpoints under the `auth:sanctum` middleware require an `Authorization` header containing a valid Bearer token.
+
 ```http
 Authorization: Bearer {token}
+```
+
+## Response Format
+
+### Success
+
+```json
+{
+  "success": true,
+  "message": "Data retrieved successfully",
+  "data": {}
+}
+```
+
+### Paginated
+
+```json
+{
+  "success": true,
+  "message": "Data retrieved successfully",
+  "data": [],
+  "meta": {
+    "current_page": 1,
+    "per_page": 15,
+    "total": 100,
+    "last_page": 7
+  }
+}
+```
+
+### Error
+
+```json
+{
+  "success": false,
+  "message": "Validation failed",
+  "errors": {
+    "name": ["The name field is required."]
+  }
+}
 ```
 
 ---
@@ -14,219 +64,376 @@ Authorization: Bearer {token}
 ## 1. Authentication
 
 ### Login
-Authenticate a user and return a token.
+
+Authenticate a user and return a Sanctum token.
+
 - **Method**: `POST`
 - **Endpoint**: `/login`
+- **Auth**: No
 - **Body (JSON)**:
-  - `email` (string, required): User's email address.
-  - `password` (string, required): User's password.
+
+```json
+{
+  "email": "admin@gmail.com",
+  "password": "password"
+}
+```
+
 - **Response**:
-  - `200 OK`: Returns user details and `token`.
+  - `200 OK`: Returns user details and token.
   - `401 Unauthorized`: Invalid credentials.
   - `422 Unprocessable Entity`: Validation errors.
 
-### Get Current User (Me)
-Retrieve the authenticated user's profile and permissions.
+### Get Current User
+
+Retrieve the authenticated user's profile, roles, and permissions.
+
 - **Method**: `GET`
 - **Endpoint**: `/me`
-- **Headers**: `Authorization: Bearer {token}`
-- **Response**: `200 OK` with user object.
+- **Auth**: Yes
+- **Response**: `200 OK`
 
 ### Logout
+
 Revoke the current user's access token.
+
 - **Method**: `POST`
 - **Endpoint**: `/logout`
-- **Headers**: `Authorization: Bearer {token}`
-- **Response**: `200 OK` with success message.
+- **Auth**: Yes
+- **Response**: `200 OK`
 
 ---
 
 ## 2. Admin - Users Management
 
-> **Note**: These endpoints require the corresponding `users.*` permissions (e.g., `users.view`, `users.create`).
+> These endpoints require the corresponding `users.*` permissions.
 
-### List Users
-Retrieve a paginated list of users.
-- **Method**: `GET`
-- **Endpoint**: `/admin/users`
-- **Headers**: `Authorization: Bearer {token}`
-- **Query Parameters**:
-  - `per_page` (integer, optional): Number of items per page. Default: 15. Min: 1, Max: 100.
-- **Response**: `200 OK` with paginated user list.
+| Method | Endpoint | Permission | Description |
+|---|---|---|---|
+| GET | `/admin/users` | `users.view` | List users |
+| POST | `/admin/users` | `users.create` | Create user |
+| GET | `/admin/users/{user}` | `users.view` | Get user detail |
+| PUT | `/admin/users/{user}` | `users.update` | Update user |
+| DELETE | `/admin/users/{user}` | `users.delete` | Delete user |
 
-### Create User
-Create a new user with optional roles and permissions.
-- **Method**: `POST`
-- **Endpoint**: `/admin/users`
-- **Headers**: `Authorization: Bearer {token}`
-- **Body (JSON)**:
-  - `name` (string, required, max: 255): User's full name.
-  - `email` (string, required, unique, max: 255): User's email address.
-  - `password` (string, required, min: 8): User's password.
-  - `role` (string, optional): A single role name to assign.
-  - `roles` (array of strings, optional): Array of role names.
-  - `permissions` (array of strings, optional): Array of permission names.
-- **Response**: `201 Created` with created user details.
+### Create User Body
 
-### Get User Details
-Retrieve details of a specific user.
-- **Method**: `GET`
-- **Endpoint**: `/admin/users/{user_id}`
-- **Headers**: `Authorization: Bearer {token}`
-- **Response**: `200 OK` with user details including roles and permissions.
+```json
+{
+  "name": "Operator Gudang",
+  "email": "operator@example.com",
+  "password": "password",
+  "roles": ["warehouse_operator"],
+  "permissions": ["products.view"]
+}
+```
 
-### Update User
-Update an existing user's information.
-- **Method**: `PUT`
-- **Endpoint**: `/admin/users/{user_id}`
-- **Headers**: `Authorization: Bearer {token}`
-- **Body (JSON)**:
-  - `name` (string, optional, max: 255)
-  - `email` (string, optional, unique, max: 255)
-  - `password` (string, optional, min: 8)
-  - `role` (string, optional)
-  - `roles` (array of strings, optional)
-  - `permissions` (array of strings, optional)
-- **Response**: `200 OK` with updated user details. 
-- **Errors**: Returns `422` if attempting to update your own account.
+Notes:
 
-### Delete User
-Delete a user from the system.
-- **Method**: `DELETE`
-- **Endpoint**: `/admin/users/{user_id}`
-- **Headers**: `Authorization: Bearer {token}`
-- **Response**: `200 OK` with success message.
-- **Errors**: Returns `422` if attempting to delete your own account.
+- `role` can be used for assigning a single role.
+- `roles` can be used for assigning multiple roles.
+- `permissions` can be used for assigning direct permissions.
 
 ---
 
 ## 3. Admin - Roles Management
 
-> **Note**: These endpoints require the corresponding `roles.*` permissions.
+> These endpoints require the corresponding `roles.*` permissions.
 
-### List Roles
-Retrieve all available roles.
-- **Method**: `GET`
-- **Endpoint**: `/admin/roles`
-- **Headers**: `Authorization: Bearer {token}`
-- **Response**: `200 OK` with a list of roles ordered by name.
+| Method | Endpoint | Permission | Description |
+|---|---|---|---|
+| GET | `/admin/roles` | `roles.view` | List roles |
+| POST | `/admin/roles` | `roles.create` | Create role |
+| GET | `/admin/roles/{role}` | `roles.view` | Get role detail |
+| PUT | `/admin/roles/{role}` | `roles.update` | Update role |
+| DELETE | `/admin/roles/{role}` | `roles.delete` | Delete role |
 
-### Create Role
-Create a new role with assigned permissions.
-- **Method**: `POST`
-- **Endpoint**: `/admin/roles`
-- **Headers**: `Authorization: Bearer {token}`
-- **Body (JSON)**:
-  - `name` (string, required, unique, max: 255): Name of the role.
-  - `permissions` (array of strings, optional): Array of permission names to attach.
-- **Response**: `201 Created` with the new role.
+### Create Role Body
 
-### Get Role Details
-Retrieve a specific role and its permissions.
-- **Method**: `GET`
-- **Endpoint**: `/admin/roles/{role_id}`
-- **Headers**: `Authorization: Bearer {token}`
-- **Response**: `200 OK` with the role details.
-
-### Update Role
-Modify a role's name or permissions.
-- **Method**: `PUT`
-- **Endpoint**: `/admin/roles/{role_id}`
-- **Headers**: `Authorization: Bearer {token}`
-- **Body (JSON)**:
-  - `name` (string, optional, unique, max: 255)
-  - `permissions` (array of strings, optional)
-- **Response**: `200 OK` with the updated role.
-- **Errors**: Returns `422` if attempting to rename the 'admin' role to something else.
-
-### Delete Role
-Delete an existing role.
-- **Method**: `DELETE`
-- **Endpoint**: `/admin/roles/{role_id}`
-- **Headers**: `Authorization: Bearer {token}`
-- **Response**: `200 OK`.
-- **Errors**: Returns `422` if attempting to delete the 'admin' role.
+```json
+{
+  "name": "viewer",
+  "permissions": ["products.view", "units.view"]
+}
+```
 
 ---
 
 ## 4. Admin - Permissions Management
 
-> **Note**: These endpoints require the corresponding `permissions.*` permissions.
+> These endpoints require the corresponding `permissions.*` permissions.
 
-### List Permissions
-Retrieve all available permissions.
-- **Method**: `GET`
-- **Endpoint**: `/admin/permissions`
-- **Headers**: `Authorization: Bearer {token}`
-- **Response**: `200 OK` with list of permissions.
+| Method | Endpoint | Permission | Description |
+|---|---|---|---|
+| GET | `/admin/permissions` | `permissions.view` | List permissions |
+| POST | `/admin/permissions` | `permissions.create` | Create permission |
+| DELETE | `/admin/permissions/{permission}` | `permissions.delete` | Delete permission |
 
-### Create Permission
-Create a new permission entry.
-- **Method**: `POST`
-- **Endpoint**: `/admin/permissions`
-- **Headers**: `Authorization: Bearer {token}`
-- **Body (JSON)**:
-  - `name` (string, required, max: 255): Permission identifier (e.g., `users.view`).
-- **Response**: `201 Created` with the new permission.
+### Create Permission Body
 
-### Delete Permission
-Remove a permission.
-- **Method**: `DELETE`
-- **Endpoint**: `/admin/permissions/{permission_id}`
-- **Headers**: `Authorization: Bearer {token}`
-- **Response**: `200 OK`.
-- **Errors**: Returns `422` if attempting to delete protected permissions like `admin.access` or `app.access`.
+```json
+{
+  "name": "products.view"
+}
+```
 
 ---
 
-## 5. Admin - Warehouses Management
+## 5. Inventory - Units
 
-> **Note**: These endpoints require the corresponding `warehouses.*` permissions.
+> These endpoints require the corresponding `units.*` permissions.
 
-### List Warehouses
-Retrieve a paginated list of warehouses.
-- **Method**: `GET`
-- **Endpoint**: `/admin/warehouses`
-- **Headers**: `Authorization: Bearer {token}`
-- **Query Parameters**:
-  - `per_page` (integer, optional): Items per page (default: 15, max: 100).
-- **Response**: `200 OK` with a paginated list.
+| Method | Endpoint | Permission | Description |
+|---|---|---|---|
+| GET | `/inventory/units` | `units.view` | List units |
+| POST | `/inventory/units` | `units.create` | Create unit |
+| GET | `/inventory/units/{unit}` | `units.view` | Get unit detail |
+| PUT | `/inventory/units/{unit}` | `units.update` | Update unit |
+| DELETE | `/inventory/units/{unit}` | `units.delete` | Delete unit |
 
-### Create Warehouse
-Add a new warehouse to the system.
-- **Method**: `POST`
-- **Endpoint**: `/admin/warehouses`
-- **Headers**: `Authorization: Bearer {token}`
-- **Body (JSON)**:
-  - `name` (string, required, max: 255): Name of the warehouse.
-  - `location` (string, required, max: 255): Location details.
-  - `type` (string, optional): Type of warehouse. Must be one of `raw`, `wip`, `finished`.
-  - `is_active` (boolean, optional): Status of the warehouse.
-- **Response**: `201 Created` with the new warehouse.
+### List Units Query Parameters
 
-### Get Warehouse Details
-View details of a specific warehouse.
-- **Method**: `GET`
-- **Endpoint**: `/admin/warehouses/{warehouse_id}`
-- **Headers**: `Authorization: Bearer {token}`
-- **Response**: `200 OK` with warehouse details.
+| Parameter | Example | Description |
+|---|---|---|
+| `search` | `?search=kg` | Search by code, name, or description |
+| `q` | `?q=kg` | Alias for search |
+| `per_page` | `?per_page=10` | Items per page, min 1, max 100 |
+| `sort` | `?sort=code` | Sort field: `id`, `code`, `name`, `is_active`, `created_at` |
+| `direction` | `?direction=asc` | `asc` or `desc` |
 
-### Update Warehouse
-Update details of an existing warehouse.
-- **Method**: `PUT`
-- **Endpoint**: `/admin/warehouses/{warehouse_id}`
-- **Headers**: `Authorization: Bearer {token}`
-- **Body (JSON)**:
-  - `name` (string, optional, max: 255)
-  - `location` (string, optional, max: 255)
-  - `type` (string, optional): Must be one of `raw`, `wip`, `finished`.
-  - `is_active` (boolean, optional)
-- **Response**: `200 OK` with the updated warehouse.
+### Create Unit Body
 
-### Delete Warehouse
-Delete a warehouse record.
-- **Method**: `DELETE`
-- **Endpoint**: `/admin/warehouses/{warehouse_id}`
-- **Headers**: `Authorization: Bearer {token}`
-- **Response**: `200 OK`.
-- **Errors**: Returns `500` if the warehouse is still used by other records.
+```json
+{
+  "code": "KG",
+  "name": "Kilogram",
+  "description": "Satuan berat kilogram",
+  "is_active": true
+}
+```
+
+---
+
+## 6. Inventory - Categories
+
+> These endpoints require the corresponding `categories.*` permissions.
+
+| Method | Endpoint | Permission | Description |
+|---|---|---|---|
+| GET | `/inventory/categories` | `categories.view` | List categories |
+| POST | `/inventory/categories` | `categories.create` | Create category |
+| GET | `/inventory/categories/{category}` | `categories.view` | Get category detail |
+| PUT | `/inventory/categories/{category}` | `categories.update` | Update category |
+| DELETE | `/inventory/categories/{category}` | `categories.delete` | Delete category |
+
+### List Categories Query Parameters
+
+| Parameter | Example | Description |
+|---|---|---|
+| `search` | `?search=kayu` | Search by code, name, or description |
+| `q` | `?q=kayu` | Alias for search |
+| `per_page` | `?per_page=10` | Items per page, min 1, max 100 |
+| `sort` | `?sort=code` | Sort field: `id`, `code`, `name`, `is_active`, `created_at` |
+| `direction` | `?direction=asc` | `asc` or `desc` |
+
+### Create Category Body
+
+```json
+{
+  "code": "KAYU",
+  "name": "Kayu",
+  "description": "Material berbahan kayu",
+  "is_active": true
+}
+```
+
+---
+
+## 7. Inventory - Warehouses
+
+> These endpoints require the corresponding `warehouses.*` permissions.
+
+| Method | Endpoint | Permission | Description |
+|---|---|---|---|
+| GET | `/inventory/warehouses` | `warehouses.view` | List warehouses |
+| POST | `/inventory/warehouses` | `warehouses.create` | Create warehouse |
+| GET | `/inventory/warehouses/{warehouse}` | `warehouses.view` | Get warehouse detail |
+| PUT | `/inventory/warehouses/{warehouse}` | `warehouses.update` | Update warehouse |
+| DELETE | `/inventory/warehouses/{warehouse}` | `warehouses.delete` | Delete warehouse |
+
+### List Warehouses Query Parameters
+
+| Parameter | Example | Description |
+|---|---|---|
+| `search` | `?search=raw` | Search by code, name, location, or type |
+| `q` | `?q=raw` | Alias for search |
+| `per_page` | `?per_page=10` | Items per page, min 1, max 100 |
+| `sort` | `?sort=code` | Sort field: `id`, `code`, `name`, `location`, `type`, `is_active`, `created_at` |
+| `direction` | `?direction=asc` | `asc` or `desc` |
+
+### Create Warehouse Body
+
+```json
+{
+  "code": "WH-RAW",
+  "name": "Gudang Bahan Baku",
+  "location": "Area A",
+  "type": "raw",
+  "is_active": true
+}
+```
+
+Allowed `type` values:
+
+- `raw`
+- `wip`
+- `finished`
+- `general`
+
+---
+
+## 8. Inventory - Products
+
+> These endpoints require the corresponding `products.*` permissions.
+
+| Method | Endpoint | Permission | Description |
+|---|---|---|---|
+| GET | `/inventory/products` | `products.view` | List products |
+| POST | `/inventory/products` | `products.create` | Create product |
+| GET | `/inventory/products/barcode/{barcode}` | `products.view` | Get product by barcode |
+| GET | `/inventory/products/{product}` | `products.view` | Get product detail |
+| PUT | `/inventory/products/{product}` | `products.update` | Update product |
+| DELETE | `/inventory/products/{product}` | `products.delete` | Delete product |
+
+Important:
+
+- Put `/inventory/products/barcode/{barcode}` before `/inventory/products/{product}` when adding routes, so `barcode` is not interpreted as a product ID.
+- Product delete is allowed only while the product is not referenced by related records. Once stock, mutation, BOM, or production references exist, product should be deactivated with `is_active = false` instead of hard deleted.
+
+### Product Fields
+
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| `sku` | string | Yes | Unique, max 100, automatically uppercased |
+| `barcode` | string nullable | No | Unique if provided, max 100 |
+| `name` | string | Yes | Max 255 |
+| `category_id` | integer | Yes | Must exist in `categories` |
+| `unit_id` | integer | Yes | Must exist in `units` |
+| `type` | string | Yes | Product type |
+| `min_stock` | number | No | Minimum 0, default 0 |
+| `description` | string nullable | No | Product description |
+| `is_active` | boolean | No | Default true |
+
+Allowed `type` values:
+
+- `raw_material`
+- `finished_good`
+- `semi_finished`
+- `packaging`
+
+### List Products Query Parameters
+
+| Parameter | Example | Description |
+|---|---|---|
+| `search` | `?search=kayu` | Search by SKU, barcode, name, or description |
+| `q` | `?q=kayu` | Alias for search |
+| `type` | `?type=raw_material` | Filter by product type |
+| `category_id` | `?category_id=1` | Filter by category |
+| `unit_id` | `?unit_id=1` | Filter by unit |
+| `is_active` | `?is_active=1` | Filter by active status |
+| `per_page` | `?per_page=10` | Items per page, min 1, max 100 |
+| `sort` | `?sort=sku` | Sort field: `id`, `sku`, `name`, `type`, `min_stock`, `is_active`, `created_at` |
+| `direction` | `?direction=asc` | `asc` or `desc` |
+
+### Create Product Body
+
+```json
+{
+  "sku": "RM-KAYU-001",
+  "barcode": "899000000001",
+  "name": "Kayu Raw Material",
+  "category_id": 1,
+  "unit_id": 1,
+  "type": "raw_material",
+  "min_stock": 10,
+  "description": "Bahan baku kayu",
+  "is_active": true
+}
+```
+
+### Update Product Body
+
+All fields are optional. Send only fields that need to be updated.
+
+```json
+{
+  "name": "Kayu Raw Material Updated",
+  "min_stock": 25,
+  "is_active": true
+}
+```
+
+### Product Response Example
+
+```json
+{
+  "success": true,
+  "message": "Product retrieved successfully",
+  "data": {
+    "id": 1,
+    "sku": "RM-KAYU-001",
+    "barcode": "899000000001",
+    "name": "Kayu Raw Material",
+    "category_id": 1,
+    "unit_id": 1,
+    "type": "raw_material",
+    "min_stock": "10.0000",
+    "description": "Bahan baku kayu",
+    "is_active": true,
+    "category": {
+      "id": 1,
+      "code": "KAYU",
+      "name": "Kayu",
+      "description": "Material berbahan kayu",
+      "is_active": true,
+      "created_at": "2026-05-27T00:00:00.000000Z",
+      "updated_at": "2026-05-27T00:00:00.000000Z"
+    },
+    "unit": {
+      "id": 1,
+      "code": "PCS",
+      "name": "Pcs",
+      "description": "Satuan per item",
+      "is_active": true,
+      "created_at": "2026-05-27T00:00:00.000000Z",
+      "updated_at": "2026-05-27T00:00:00.000000Z"
+    },
+    "created_at": "2026-05-27T00:00:00.000000Z",
+    "updated_at": "2026-05-27T00:00:00.000000Z"
+  }
+}
+```
+
+### Validation Errors
+
+Common validation cases:
+
+- `sku` is required and must be unique.
+- `barcode` must be unique when provided.
+- `category_id` must reference an existing category.
+- `unit_id` must reference an existing unit.
+- `type` must be one of the allowed product types.
+- `min_stock` must be greater than or equal to 0.
+
+Example:
+
+```json
+{
+  "success": false,
+  "message": "Validation failed",
+  "errors": {
+    "sku": ["The sku has already been taken."]
+  }
+}
+```
+
