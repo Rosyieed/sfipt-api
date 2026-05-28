@@ -4,6 +4,8 @@ use App\Http\Controllers\Api\V1\Admin\CategoryController;
 use App\Http\Controllers\Api\V1\Admin\PermissionController;
 use App\Http\Controllers\Api\V1\Admin\ProductController;
 use App\Http\Controllers\Api\V1\Admin\RoleController;
+use App\Http\Controllers\Api\V1\Admin\StockController;
+use App\Http\Controllers\Api\V1\Admin\StockMutationController;
 use App\Http\Controllers\Api\V1\Admin\UnitController;
 use App\Http\Controllers\Api\V1\Admin\UserController;
 use App\Http\Controllers\Api\V1\Admin\WarehouseController;
@@ -60,6 +62,14 @@ Route::prefix('v1')->group(function () {
             Route::get('products/{product}', [ProductController::class, 'show'])->middleware('permission:products.view,sanctum');
             Route::put('products/{product}', [ProductController::class, 'update'])->middleware('permission:products.update,sanctum');
             Route::delete('products/{product}', [ProductController::class, 'destroy'])->middleware('permission:products.delete,sanctum');
+
+            Route::get('scan/{barcode}', [StockController::class, 'scan'])->middleware('permission:stocks.view,sanctum');
+            Route::get('stocks', [StockController::class, 'index'])->middleware('permission:stocks.view,sanctum');
+            Route::get('stocks/{stock}', [StockController::class, 'show'])->middleware('permission:stocks.view,sanctum');
+
+            Route::get('mutations', [StockMutationController::class, 'index'])->middleware('permission:mutations.view,sanctum');
+            Route::post('mutations', [StockMutationController::class, 'store'])->middleware('permission:mutations.create,sanctum');
+            Route::get('mutations/{mutation}', [StockMutationController::class, 'show'])->middleware('permission:mutations.view,sanctum');
         });
     });
 });

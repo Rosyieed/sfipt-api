@@ -25,6 +25,7 @@ class ProductResource extends JsonResource
             'is_active' => $this->is_active,
             'category' => new CategoryResource($this->whenLoaded('category')),
             'unit' => new UnitResource($this->whenLoaded('unit')),
+            'stocks' => StockResource::collection($this->whenLoaded('stocks')),
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),
         ];

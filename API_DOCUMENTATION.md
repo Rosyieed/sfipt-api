@@ -437,3 +437,92 @@ Example:
 }
 ```
 
+---
+
+## 9. Inventory - Stocks
+
+> These endpoints require `stocks.view`. Stock is read-only and is created or updated only through stock mutations.
+
+| Method | Endpoint | Permission | Description |
+|---|---|---|---|
+| GET | `/inventory/stocks` | `stocks.view` | List current stocks |
+| GET | `/inventory/stocks/{stock}` | `stocks.view` | Get stock detail |
+| GET | `/inventory/scan/{barcode}` | `stocks.view` | Scan product barcode and return product with stocks |
+
+### List Stocks Query Parameters
+
+| Parameter | Example | Description |
+|---|---|---|
+| `search` | `?search=RM-KAYU` | Search by product SKU, barcode, product name, warehouse code, or warehouse name |
+| `q` | `?q=RM-KAYU` | Alias for search |
+| `product_id` | `?product_id=1` | Filter by product |
+| `warehouse_id` | `?warehouse_id=1` | Filter by warehouse |
+| `low_stock` | `?low_stock=1` | Filter rows where `stocks.qty < products.min_stock` |
+| `per_page` | `?per_page=10` | Items per page, min 1, max 100 |
+| `sort` | `?sort=qty` | Sort field: `id`, `product_id`, `warehouse_id`, `qty`, `created_at` |
+| `direction` | `?direction=desc` | `asc` or `desc` |
+
+---
+
+## 10. Inventory - Stock Mutations
+
+> These endpoints require `mutations.view` or `mutations.create`.
+
+| Method | Endpoint | Permission | Description |
+|---|---|---|---|
+| GET | `/inventory/mutations` | `mutations.view` | List stock mutation audit trail |
+| POST | `/inventory/mutations` | `mutations.create` | Create stock mutation and update stock |
+| GET | `/inventory/mutations/{mutation}` | `mutations.view` | Get stock mutation detail |
+
+There is no delete endpoint for stock mutations.
+
+### Create Stock In Body
+
+```json
+{
+  "product_id": 1,
+  "type": "in",
+  "to_warehouse_id": 1,
+  "qty": 25,
+  "reference_no": "GRN-001",
+  "notes": "Initial stock"
+}
+```
+
+### Create Stock Out Body
+
+```json
+{
+  "product_id": 1,
+  "type": "out",
+  "from_warehouse_id": 1,
+  "qty": 5
+}
+```
+
+### Create Transfer Body
+
+```json
+{
+  "product_id": 1,
+  "type": "transfer",
+  "from_warehouse_id": 1,
+  "to_warehouse_id": 2,
+  "qty": 10
+}
+```
+
+Allowed `type` values for manual API input:
+
+- `in`
+- `out`
+- `transfer`
+- `adjustment`
+
+Notes:
+
+- `in` requires `to_warehouse_id`.
+- `out` requires `from_warehouse_id`.
+- `transfer` requires both warehouses and they must be different.
+- `adjustment` uses exactly one direction: `to_warehouse_id` to add stock or `from_warehouse_id` to reduce stock.
+- Mutations fail with `422 Unprocessable Entity` if stock is not enough.

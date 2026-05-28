@@ -56,6 +56,24 @@ class RbacSeeder extends Seeder
                 'products.create',
                 'products.update',
                 'products.delete',
+
+                'stocks.view',
+
+                'mutations.view',
+                'mutations.create',
+
+                'boms.view',
+                'boms.create',
+                'boms.update',
+                'boms.delete',
+
+                'production-orders.view',
+                'production-orders.create',
+                'production-orders.update',
+                'production-orders.execute',
+                'production-orders.cancel',
+
+                'dashboard.view',
             ];
 
             foreach ($permissions as $permissionName) {
@@ -80,7 +98,12 @@ class RbacSeeder extends Seeder
                 'guard_name' => $guardName,
             ]);
 
-            $adminRole->syncPermissions(Permission::query()->where('guard_name', $guardName)->pluck('name')->all());
+            $adminRole->syncPermissions(
+                Permission::query()
+                    ->where('guard_name', $guardName)
+                    ->pluck('name')
+                    ->all()
+            );
             $warehouseOperatorRole->syncPermissions([
                 'app.access',
                 'warehouses.view',
@@ -99,8 +122,28 @@ class RbacSeeder extends Seeder
                 'products.create',
                 'products.update',
                 'products.delete',
+                'stocks.view',
+                'mutations.view',
+                'mutations.create',
             ]);
-            $productionManagerRole->syncPermissions(['app.access']);
+            $productionManagerRole->syncPermissions([
+                'app.access',
+                'warehouses.view',
+                'categories.view',
+                'units.view',
+                'products.view',
+                'stocks.view',
+                'mutations.view',
+                'boms.view',
+                'boms.create',
+                'boms.update',
+                'production-orders.view',
+                'production-orders.create',
+                'production-orders.update',
+                'production-orders.execute',
+                'production-orders.cancel',
+                'dashboard.view',
+            ]);
 
             DB::commit();
         } catch (\Throwable $e) {

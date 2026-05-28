@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Warehouse extends Model
 {
@@ -38,5 +39,20 @@ class Warehouse extends Model
     public function updatedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'updated_by');
+    }
+
+    public function stocks(): HasMany
+    {
+        return $this->hasMany(Stock::class);
+    }
+
+    public function incomingStockMutations(): HasMany
+    {
+        return $this->hasMany(StockMutation::class, 'to_warehouse_id');
+    }
+
+    public function outgoingStockMutations(): HasMany
+    {
+        return $this->hasMany(StockMutation::class, 'from_warehouse_id');
     }
 }

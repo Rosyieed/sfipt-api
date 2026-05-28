@@ -14,8 +14,8 @@ Tanggal pengecekan: 2026-05-27
 | Master Category | Done / perlu test | CRUD, request, resource, model, migration, route sudah ada. |
 | Master Warehouse | Done / perlu test | CRUD, request, resource, model, migration, route sudah ada. |
 | Master Product | Implemented / perlu test penuh | Migration, model, controller, request, resource, route, permission, seeder, dokumentasi, dan feature test dasar sudah dibuat. |
-| Inventory Stock | Not started | Belum ada table `stocks`, stock API, scan API. |
-| Stock Mutation | Not started | Belum ada table `stock_mutations`, service, controller, request, route. |
+| Inventory Stock | Implemented / perlu test penuh | Table `stocks`, read API, low stock filter, dan scan API sudah dibuat. |
+| Stock Mutation | Implemented / perlu test penuh | Table `stock_mutations`, service, controller, request, route, dan feature test dasar sudah dibuat. |
 | BOM | Not started | Belum ada table `boms` dan `bom_items`. |
 | Production Order | Not started | Belum ada table, service, controller, request, route. |
 | Dashboard | Not started | Belum ada dashboard controller dan endpoint aggregation. |
@@ -232,26 +232,26 @@ Dependensi:
 
 Task backend:
 
-- [ ] Buat migration `stocks`.
-- [ ] Field: `product_id`, `warehouse_id`, `qty`.
-- [ ] Tambahkan unique index gabungan `product_id` dan `warehouse_id`.
-- [ ] Buat model `Stock`.
-- [ ] Tambahkan relationship ke `Product` dan `Warehouse`.
-- [ ] Buat `StockResource`.
-- [ ] Buat `StockController`.
-- [ ] Endpoint `GET /api/v1/inventory/stocks`.
-- [ ] Endpoint `GET /api/v1/inventory/stocks/{stock}`.
-- [ ] Endpoint `GET /api/v1/inventory/scan/{barcode}`.
-- [ ] Tambahkan filter `product_id`, `warehouse_id`, `low_stock`, `search`.
-- [ ] Implementasikan low stock query berdasarkan `stocks.qty < products.min_stock`.
-- [ ] Tambahkan permission `stocks.view`.
+- [x] Buat migration `stocks`.
+- [x] Field: `product_id`, `warehouse_id`, `qty`.
+- [x] Tambahkan unique index gabungan `product_id` dan `warehouse_id`.
+- [x] Buat model `Stock`.
+- [x] Tambahkan relationship ke `Product` dan `Warehouse`.
+- [x] Buat `StockResource`.
+- [x] Buat `StockController`.
+- [x] Endpoint `GET /api/v1/inventory/stocks`.
+- [x] Endpoint `GET /api/v1/inventory/stocks/{stock}`.
+- [x] Endpoint `GET /api/v1/inventory/scan/{barcode}`.
+- [x] Tambahkan filter `product_id`, `warehouse_id`, `low_stock`, `search`.
+- [x] Implementasikan low stock query berdasarkan `stocks.qty < products.min_stock`.
+- [x] Tambahkan permission `stocks.view`.
 
 Acceptance criteria:
 
-- [ ] Stock tidak diinput langsung oleh user.
-- [ ] Stock otomatis terbentuk saat mutation pertama.
-- [ ] Kombinasi product dan warehouse unik.
-- [ ] Low stock dapat difilter.
+- [x] Stock tidak diinput langsung oleh user.
+- [x] Stock otomatis terbentuk saat mutation pertama.
+- [x] Kombinasi product dan warehouse unik.
+- [x] Low stock dapat difilter.
 
 ### 8. Stock Mutation
 
@@ -265,35 +265,35 @@ Dependensi:
 
 Task backend:
 
-- [ ] Buat migration `stock_mutations`.
-- [ ] Field sesuai PRD: `mutation_number`, `product_id`, `type`, `from_warehouse_id`, `to_warehouse_id`, `qty`, `reference_type`, `reference_id`, `reference_no`, `notes`, `created_by`.
-- [ ] Tambahkan unique index `mutation_number`.
-- [ ] Tambahkan index untuk `product_id`, warehouse, reference, dan created date.
-- [ ] Buat model `StockMutation`.
-- [ ] Buat `StockMutationResource`.
-- [ ] Buat `StoreStockMutationRequest`.
-- [ ] Buat `StockMutationController`.
-- [ ] Endpoint `GET /api/v1/inventory/mutations`.
-- [ ] Endpoint `POST /api/v1/inventory/mutations`.
-- [ ] Endpoint `GET /api/v1/inventory/mutations/{mutation}`.
-- [ ] Buat `StockService`.
-- [ ] Implementasikan `stockIn`.
-- [ ] Implementasikan `stockOut`.
-- [ ] Implementasikan `transfer`.
-- [ ] Implementasikan `adjustment`.
-- [ ] Semua perubahan stock wajib memakai `DB::transaction()`.
-- [ ] Gunakan row lock saat update stock untuk mengurangi risiko stock tidak sinkron.
-- [ ] Generate `mutation_number` otomatis.
-- [ ] Tambahkan permission `mutations.view` dan `mutations.create`.
+- [x] Buat migration `stock_mutations`.
+- [x] Field sesuai PRD: `mutation_number`, `product_id`, `type`, `from_warehouse_id`, `to_warehouse_id`, `qty`, `reference_type`, `reference_id`, `reference_no`, `notes`, `created_by`.
+- [x] Tambahkan unique index `mutation_number`.
+- [x] Tambahkan index untuk `product_id`, warehouse, reference, dan created date.
+- [x] Buat model `StockMutation`.
+- [x] Buat `StockMutationResource`.
+- [x] Buat `StoreStockMutationRequest`.
+- [x] Buat `StockMutationController`.
+- [x] Endpoint `GET /api/v1/inventory/mutations`.
+- [x] Endpoint `POST /api/v1/inventory/mutations`.
+- [x] Endpoint `GET /api/v1/inventory/mutations/{mutation}`.
+- [x] Buat `StockService`.
+- [x] Implementasikan `stockIn`.
+- [x] Implementasikan `stockOut`.
+- [x] Implementasikan `transfer`.
+- [x] Implementasikan `adjustment`.
+- [x] Semua perubahan stock wajib memakai `DB::transaction()`.
+- [x] Gunakan row lock saat update stock untuk mengurangi risiko stock tidak sinkron.
+- [x] Generate `mutation_number` otomatis.
+- [x] Tambahkan permission `mutations.view` dan `mutations.create`.
 
 Acceptance criteria:
 
-- [ ] Mutation `in` menambah stock.
-- [ ] Mutation `out` mengurangi stock.
-- [ ] Mutation `transfer` mengurangi gudang asal dan menambah gudang tujuan.
-- [ ] Mutation gagal jika stock tidak cukup.
-- [ ] Mutation tersimpan sebagai audit trail.
-- [ ] Mutation tidak disediakan endpoint delete.
+- [x] Mutation `in` menambah stock.
+- [x] Mutation `out` mengurangi stock.
+- [x] Mutation `transfer` mengurangi gudang asal dan menambah gudang tujuan.
+- [x] Mutation gagal jika stock tidak cukup.
+- [x] Mutation tersimpan sebagai audit trail.
+- [x] Mutation tidak disediakan endpoint delete.
 
 ### 9. Bill of Materials
 
@@ -450,8 +450,8 @@ Task:
 - [ ] Tambahkan dokumentasi Category.
 - [ ] Update dokumentasi Warehouse.
 - [ ] Tambahkan dokumentasi Product setelah dibuat.
-- [ ] Tambahkan dokumentasi Stock setelah dibuat.
-- [ ] Tambahkan dokumentasi Stock Mutation setelah dibuat.
+- [x] Tambahkan dokumentasi Stock setelah dibuat.
+- [x] Tambahkan dokumentasi Stock Mutation setelah dibuat.
 - [ ] Tambahkan dokumentasi BOM setelah dibuat.
 - [ ] Tambahkan dokumentasi Production Order setelah dibuat.
 - [ ] Tambahkan dokumentasi Dashboard setelah dibuat.
@@ -469,10 +469,10 @@ Prioritas minimal:
 - [ ] Feature test CRUD Category.
 - [ ] Feature test CRUD Warehouse.
 - [ ] Feature test CRUD Product.
-- [ ] Feature test stock mutation in.
-- [ ] Feature test stock mutation out.
-- [ ] Feature test stock mutation transfer.
-- [ ] Feature test negative stock ditolak.
+- [x] Feature test stock mutation in.
+- [x] Feature test stock mutation out.
+- [x] Feature test stock mutation transfer.
+- [x] Feature test negative stock ditolak.
 - [ ] Feature test create BOM.
 - [ ] Feature test create production order.
 - [ ] Feature test execute production gagal jika stock kurang.
@@ -497,11 +497,11 @@ Prioritas minimal:
 
 ### Phase 2 - Inventory Core
 
-- [ ] Implementasi Stock.
-- [ ] Implementasi Stock Mutation.
-- [ ] Implementasi StockService.
-- [ ] Implementasi barcode / scan endpoint.
-- [ ] Tambahkan feature test stock dan mutation.
+- [x] Implementasi Stock.
+- [x] Implementasi Stock Mutation.
+- [x] Implementasi StockService.
+- [x] Implementasi barcode / scan endpoint.
+- [x] Tambahkan feature test stock dan mutation.
 
 ### Phase 3 - Production Core
 
