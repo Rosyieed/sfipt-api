@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class ProductController extends Controller
 {
@@ -67,6 +68,7 @@ class ProductController extends Controller
             DB::commit();
         } catch (\Throwable $e) {
             DB::rollBack();
+            Log::error('Product creation failed: ' . $e->getMessage(), ['exception' => $e]);
 
             return ApiResponse::error('Server error', status: 500);
         }
@@ -96,6 +98,7 @@ class ProductController extends Controller
             DB::commit();
         } catch (\Throwable $e) {
             DB::rollBack();
+            Log::error('Product update failed: ' . $e->getMessage(), ['exception' => $e]);
 
             return ApiResponse::error('Server error', status: 500);
         }
@@ -116,6 +119,7 @@ class ProductController extends Controller
             DB::commit();
         } catch (\Throwable $e) {
             DB::rollBack();
+            Log::error('Product deletion failed: ' . $e->getMessage(), ['exception' => $e]);
 
             return ApiResponse::error('Product is still used by other records or Server error.', status: 500);
         }

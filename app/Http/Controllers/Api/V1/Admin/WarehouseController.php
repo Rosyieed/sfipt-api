@@ -31,54 +31,23 @@ class WarehouseController extends Controller
 
         $search = trim((string) $request->query('search', $request->query('q', '')));
 
-        $warehouses = in_array($sort, ['code', 'name', 'location'], true)
-            ? $this->paginateNaturalSort($request, $sort, $direction, $perPage, $search)
-            : Warehouse::query()
-                ->when($search !== '', fn (Builder $query) => $this->applySearch($query, $search))
+        $query = Warehouse::query()
+            ->when($search !== '', fn (Builder $query) => $this->applySearch($query, $search));
+
+        if (in_array($sort, ['code', 'name', 'location'], true)) {
+            $warehouses = $query
+                ->orderByRaw('LENGTH(' . $sort . ') ' . $direction)
                 ->orderBy($sort, $direction)
                 ->paginate($perPage);
+        } else {
+            $warehouses = $query
+                ->orderBy($sort, $direction)
+                ->paginate($perPage);
+        }
 
         return ApiResponse::paginated(
             'Warehouses retrieved successfully',
             WarehouseResource::collection($warehouses),
-        );
-    }
-
-    /**
-     * @param  'code'|'name'|'location'  $sort
-     * @param  'asc'|'desc'  $direction
-     */
-    private function paginateNaturalSort(
-        Request $request,
-        string $sort,
-        string $direction,
-        int $perPage,
-        string $search,
-    ): LengthAwarePaginator {
-        $page = max(1, (int) $request->query('page', 1));
-        $warehouses = Warehouse::query()
-            ->when($search !== '', fn (Builder $query) => $this->applySearch($query, $search))
-            ->get()
-            ->sort(function (Warehouse $first, Warehouse $second) use ($sort, $direction): int {
-                $result = strnatcasecmp((string) $first->{$sort}, (string) $second->{$sort});
-
-                if ($result === 0) {
-                    $result = $first->id <=> $second->id;
-                }
-
-                return $direction === 'asc' ? $result : -$result;
-            })
-            ->values();
-
-        return new LengthAwarePaginator(
-            $warehouses->forPage($page, $perPage)->values(),
-            $warehouses->count(),
-            $perPage,
-            $page,
-            [
-                'path' => $request->url(),
-                'query' => $request->query(),
-            ],
         );
     }
 

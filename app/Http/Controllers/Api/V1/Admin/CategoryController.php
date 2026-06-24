@@ -11,6 +11,7 @@ use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class CategoryController extends Controller
 {
@@ -72,6 +73,7 @@ class CategoryController extends Controller
             DB::commit();
         } catch (\Throwable $e) {
             DB::rollBack();
+            Log::error('Category creation failed: ' . $e->getMessage(), ['exception' => $e]);
 
             return ApiResponse::error('Server error', status: 500);
         }
@@ -121,6 +123,7 @@ class CategoryController extends Controller
             DB::commit();
         } catch (\Throwable $e) {
             DB::rollBack();
+            Log::error('Category update failed: ' . $e->getMessage(), ['exception' => $e]);
 
             return ApiResponse::error('Server error', status: 500);
         }
@@ -141,6 +144,7 @@ class CategoryController extends Controller
             DB::commit();
         } catch (\Throwable $e) {
             DB::rollBack();
+            Log::error('Category deletion failed: ' . $e->getMessage(), ['exception' => $e]);
 
             return ApiResponse::error('Category is still used by other records or Server error.', status: 500);
         }

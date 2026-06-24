@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Spatie\Permission\Models\Role;
@@ -72,6 +73,7 @@ class RoleController extends Controller
             DB::commit();
         } catch (\Throwable $e) {
             DB::rollBack();
+            Log::error('Role creation failed: ' . $e->getMessage(), ['exception' => $e]);
 
             return response()->json([
                 'success' => false,
@@ -130,6 +132,7 @@ class RoleController extends Controller
             DB::commit();
         } catch (\Throwable $e) {
             DB::rollBack();
+            Log::error('Role update failed: ' . $e->getMessage(), ['exception' => $e]);
 
             return response()->json([
                 'success' => false,
@@ -166,6 +169,7 @@ class RoleController extends Controller
             DB::commit();
         } catch (\Throwable $e) {
             DB::rollBack();
+            Log::error('Role deletion failed: ' . $e->getMessage(), ['exception' => $e]);
 
             return response()->json([
                 'success' => false,

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Spatie\Permission\Models\Permission;
 
@@ -53,6 +54,7 @@ class PermissionController extends Controller
             DB::commit();
         } catch (\Throwable $e) {
             DB::rollBack();
+            Log::error('Permission creation failed: ' . $e->getMessage(), ['exception' => $e]);
 
             return response()->json([
                 'success' => false,
@@ -87,6 +89,7 @@ class PermissionController extends Controller
             DB::commit();
         } catch (\Throwable $e) {
             DB::rollBack();
+            Log::error('Permission deletion failed: ' . $e->getMessage(), ['exception' => $e]);
 
             return response()->json([
                 'success' => false,

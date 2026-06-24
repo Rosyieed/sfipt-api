@@ -58,11 +58,17 @@ class StockService
 
     private function increase(int $productId, int $warehouseId, string $qty): Stock
     {
-        $stock = $this->lockedStock($productId, $warehouseId) ?? Stock::create([
+        $stock = Stock::firstOrCreate([
             'product_id' => $productId,
             'warehouse_id' => $warehouseId,
+        ], [
             'qty' => 0,
         ]);
+
+        $stock = Stock::query()
+            ->where('id', $stock->id)
+            ->lockForUpdate()
+            ->first();
 
         $stock->qty = $this->decimal((float) $stock->qty + (float) $qty);
         $stock->save();

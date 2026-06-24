@@ -26,55 +26,16 @@ class UserController extends Controller
             $sort = 'id';
         }
 
-        $users = in_array($sort, ['name', 'email'], true)
-            ? $this->paginateNaturalSort($request, $sort, $direction, $perPage)
-            : User::query()
-                ->with(['roles.permissions', 'permissions'])
-                ->orderBy($sort, $direction)
-                ->paginate($perPage);
+        $users = User::query()
+            ->with(['roles.permissions', 'permissions'])
+            ->orderBy($sort, $direction)
+            ->paginate($perPage);
 
         return response()->json([
             'success' => true,
             'message' => 'Users retrieved successfully',
             'data' => $users,
         ]);
-    }
-
-    /**
-     * @param 'name'|'email' $sort
-     * @param 'asc'|'desc' $direction
-     */
-    private function paginateNaturalSort(
-        Request $request,
-        string $sort,
-        string $direction,
-        int $perPage,
-    ): LengthAwarePaginator {
-        $page = max(1, (int) $request->query('page', 1));
-        $users = User::query()
-            ->with(['roles.permissions', 'permissions'])
-            ->get()
-            ->sort(function (User $first, User $second) use ($sort, $direction): int {
-                $result = strnatcasecmp((string) $first->{$sort}, (string) $second->{$sort});
-
-                if ($result === 0) {
-                    $result = $first->id <=> $second->id;
-                }
-
-                return $direction === 'asc' ? $result : -$result;
-            })
-            ->values();
-
-        return new LengthAwarePaginator(
-            $users->forPage($page, $perPage)->values(),
-            $users->count(),
-            $perPage,
-            $page,
-            [
-                'path' => $request->url(),
-                'query' => $request->query(),
-            ],
-        );
     }
 
     public function store(Request $request): JsonResponse

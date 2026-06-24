@@ -8,6 +8,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
 class AuthController extends Controller
@@ -48,6 +49,7 @@ class AuthController extends Controller
             DB::commit();
         } catch (\Throwable $e) {
             DB::rollBack();
+            Log::error('Login failed: ' . $e->getMessage(), ['exception' => $e]);
 
             return response()->json([
                 'success' => false,
@@ -76,6 +78,7 @@ class AuthController extends Controller
             DB::commit();
         } catch (\Throwable $e) {
             DB::rollBack();
+            Log::error('Logout failed: ' . $e->getMessage(), ['exception' => $e]);
 
             return response()->json([
                 'success' => false,
