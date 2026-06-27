@@ -633,11 +633,11 @@ Membuat resep produksi untuk barang jadi.
 
 | Method | Endpoint | Description |
 |---|---|---|
-| GET | `/api/v1/boms` | List BOM |
-| POST | `/api/v1/boms` | Create BOM |
-| GET | `/api/v1/boms/{id}` | Detail BOM |
-| PUT | `/api/v1/boms/{id}` | Update BOM |
-| DELETE | `/api/v1/boms/{id}` | Delete BOM |
+| GET | `/api/v1/production/boms` | List BOM |
+| POST | `/api/v1/production/boms` | Create BOM |
+| GET | `/api/v1/production/boms/{id}` | Detail BOM |
+| PUT | `/api/v1/production/boms/{id}` | Update BOM |
+| DELETE | `/api/v1/production/boms/{id}` | Delete BOM |
 | GET | `/api/v1/inventory/products/{product_id}/boms` | Get BOM by product |
 
 ### Create BOM Payload
@@ -723,13 +723,13 @@ Membuat dan menjalankan perintah produksi berdasarkan BOM.
 
 | Method | Endpoint | Description |
 |---|---|---|
-| GET | `/api/v1/production-orders` | List production order |
-| POST | `/api/v1/production-orders` | Create production order |
-| GET | `/api/v1/production-orders/{id}` | Detail production order |
-| PUT | `/api/v1/production-orders/{id}` | Update production order |
-| PUT | `/api/v1/production-orders/{id}/status` | Update status |
-| POST | `/api/v1/production-orders/{id}/execute` | Execute production |
-| POST | `/api/v1/production-orders/{id}/cancel` | Cancel production order |
+| GET | `/api/v1/production/orders` | List production order |
+| POST | `/api/v1/production/orders` | Create production order |
+| GET | `/api/v1/production/orders/{id}` | Detail production order |
+| PUT | `/api/v1/production/orders/{id}` | Update production order |
+| PUT | `/api/v1/production/orders/{id}/status` | Update status |
+| POST | `/api/v1/production/orders/{id}/execute` | Execute production |
+| POST | `/api/v1/production/orders/{id}/cancel` | Cancel production order |
 
 ### Create Production Order Payload
 

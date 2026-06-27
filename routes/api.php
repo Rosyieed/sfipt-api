@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\V1\Admin\BomController;
 use App\Http\Controllers\Api\V1\Admin\CategoryController;
 use App\Http\Controllers\Api\V1\Admin\PermissionController;
 use App\Http\Controllers\Api\V1\Admin\ProductController;
@@ -57,6 +58,7 @@ Route::prefix('v1')->group(function () {
             Route::delete('units/{unit}', [UnitController::class, 'destroy'])->middleware('permission:units.delete,sanctum');
 
             Route::get('products/barcode/{barcode}', [ProductController::class, 'findByBarcode'])->middleware('permission:products.view,sanctum');
+            Route::get('products/{product}/boms', [BomController::class, 'getByProduct'])->middleware('permission:boms.view,sanctum');
             Route::get('products', [ProductController::class, 'index'])->middleware('permission:products.view,sanctum');
             Route::post('products', [ProductController::class, 'store'])->middleware('permission:products.create,sanctum');
             Route::get('products/{product}', [ProductController::class, 'show'])->middleware('permission:products.view,sanctum');
@@ -70,6 +72,14 @@ Route::prefix('v1')->group(function () {
             Route::get('mutations', [StockMutationController::class, 'index'])->middleware('permission:mutations.view,sanctum');
             Route::post('mutations', [StockMutationController::class, 'store'])->middleware('permission:mutations.create,sanctum');
             Route::get('mutations/{mutation}', [StockMutationController::class, 'show'])->middleware('permission:mutations.view,sanctum');
+        });
+
+        Route::prefix('production')->group(function () {
+            Route::get('boms', [BomController::class, 'index'])->middleware('permission:boms.view,sanctum');
+            Route::post('boms', [BomController::class, 'store'])->middleware('permission:boms.create,sanctum');
+            Route::get('boms/{bom}', [BomController::class, 'show'])->middleware('permission:boms.view,sanctum');
+            Route::put('boms/{bom}', [BomController::class, 'update'])->middleware('permission:boms.update,sanctum');
+            Route::delete('boms/{bom}', [BomController::class, 'destroy'])->middleware('permission:boms.delete,sanctum');
         });
     });
 });

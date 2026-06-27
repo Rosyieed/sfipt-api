@@ -55,4 +55,9 @@ class Product extends Model
     {
         return $this->hasMany(StockMutation::class);
     }
+
+    public function boms(): HasMany
+    {
+        return $this->hasMany(Bom::class);
+    }
 }
