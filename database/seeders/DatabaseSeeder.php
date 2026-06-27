@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
         $this->call(CategorySeeder::class);
         $this->call(UnitSeeder::class);
         $this->call(ProductSeeder::class);
+        $this->call(BomSeeder::class);
 
         $adminEmail = env('DEFAULT_ADMIN_EMAIL', 'admin@gmail.com');
         $adminPassword = env('DEFAULT_ADMIN_PASSWORD', 'password');
